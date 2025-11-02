@@ -1,0 +1,4 @@
+#!/bin/sh -e
+cp "${srcdir}"/ssl/cert-my-second-domain-tld.pem ssl/cert.pem
+cp "${srcdir}"/ssl/key-my-second-domain-tld.pem ssl/key.pem
+cp "${srcdir}"/ssl/dhparams-my-second-domain-tld.pem ssl/dhparams.pem

@@ -1,0 +1,119 @@
+ELKS ngIRCd Port Change Log
+===========================
+
+This file summarizes all modifications that were applied to adapt ngIRCd for
+ELKS during the current porting work. Each entry references the affected source
+file(s) and explains the rationale for the change.
+
+1. src/ngircd/conf-ssl.h
+   - Added NGIRCD_DISABLE_SSL guard so SSL support never enables on ELKS.
+
+2. src/ngircd/conf.c
+   - Set Conf_DNS default to false when resolver is disabled.
+   - Ignored "DNS" configuration directive with warning if resolver is removed.
+
+3. src/ngircd/conn.c
+   - Bypassed asynchronous resolver during client logins when disabled.
+   - Replaced hostname resolution for outbound server links with numeric-only
+     logic guarded by NGIRCD_DISABLE_RESOLVER.
+
+4. src/ngircd/resolve.c
+   - Stubbed Resolve_Addr_Ident and Resolve_Name when resolver support is
+     disabled to satisfy callers without spawning helper processes.
+
+5. src/portab/elks-stubs.c (new)
+   - Added ELKS-specific stubs for getaddrinfo/getnameinfo to keep builds happy
+     when only numeric addressing is available.
+
+6. src/portab/Makefile.ng
+   - Included the new ELKS stub source in the portability library build.
+
+7. src/config-elks.h (new)
+   - Introduced a static configuration header defining compile-time defaults
+     for ELKS, forcing SSL/hostname resolver off and locking in target metadata.
+
+8. env-elks-ngircd.sh (new)
+   - Supplied a shell snippet that prepares the Watcom toolchain environment
+     variables required to build ngIRCd for ELKS, defaulting to `/opt/openwatcom`
+     when `WATCOM` is unset and unsetting `LIBC` so the build script can choose
+     the correct ELKS libraries.
+
+9. build-elks-ngircd.sh (new)
+   - Added the Watcom-based build script that compiles ngIRCd with the ELKS
+     configuration, mirroring the requested command style and cleaning artifacts.
+
+10. src/portab/strings.h (new)
+    - Ensured `<strings.h>` resolves to the ELKS libc version, preventing Watcom
+      from injecting conflicting prototypes during the build.
+
+11. src/portab/vsnprintf.c
+    - Included `<ctype.h>` so Watcom sees the prototype for `isdigit()`.
+
+12. src/config-elks.h
+    - Defined `SYSCONFDIR`/`DOCDIR` for MOTD/help defaults and provided fallbacks
+      for `AF_UNSPEC` and `SO_ERROR` to match ELKS socket headers.
+
+13. src/ngircd/conf.c
+    - Guarded `gethostbyname()` usage behind `NGIRCD_DISABLE_RESOLVER` so ELKS
+      builds avoid missing netdb structures.
+
+14. src/ngircd/client.c
+    - Mirrored the resolver guard for bootstrap hostname selection.
+
+15. src/portab/elks-stubs.c
+    - Added Watcom-friendly stubs for networking helpers (`inet_*`,
+      `gethostname`, `getsockopt`, etc.) so ELKS builds resolve without relying
+      on missing libc implementations.
+
+16. src/ipaddr/ng_ipaddr.h
+    - Declared the inet* prototypes explicitly when `getaddrinfo` is unavailable.
+
+17. src/portab/waitpid.c
+    - Included `<sys/wait.h>` so the `wait()` prototype is visible to Watcom.
+
+18. include/linuxmt/errno.h (new)
+    - Added lightweight errno definitions so the Watcom compile bypasses the
+      complex ELKS kernel header.
+
+19. include/linuxmt/fcntl.h (new)
+    - Added a Watcom-friendly subset of ELKS `fcntl` constants to avoid parser
+      issues.
+
+20. include/linuxmt/signal.h (new)
+    - Introduced minimal signal constants to keep Watcom from parsing the
+      kernel header that uses GNU extensions.
+
+21. include/signal.h (new)
+    - Added a stubbed POSIX signal header so ELKS builds have basic prototypes
+      without relying on libc definitions that Watcom cannot parse.
+
+22. src/config-elks.h
+    - Declared stub prototypes for `chroot`/`setpgrp` when building with
+      Watcom so the ELKS libc omissions do not block compilation.
+
+23. build-elks-ngircd.sh
+    - Linked against `libch.lib`/`libcc.lib` by default (optionally honoring
+      `LIBC`), re-enabled Watcom default libraries so the runtime startup and
+      math helpers resolve, reduced the linker stack to stay within the 64 KiB
+      ELKS segment limit, and skipped missing library paths to silence
+      Watcom’s W1008 warning.
+
+ELKS Image Integration
+----------------------
+1. Prepare the toolchain environment:
+      . ./env-elks-ngircd.sh
+2. Build ngIRCd for ELKS:
+      ./build-elks-ngircd.sh
+   The Watcom pass emits `build-elks/bin/ngircd.os2`.
+3. Convert the OS/2 binary to an ELKS a.out executable using the helper shipped
+   with the ELKS tree:
+      $TOPDIR/elks/tools/objtools/os2toelks -f elks \
+          -o build-elks/bin/ngircd build-elks/bin/ngircd.os2
+4. Stage the daemon on your ELKS filesystem image. For the stock layout you can
+   place it in the rootfs template before rebuilding disk images:
+      cp build-elks/bin/ngircd \
+         $TOPDIR/elkscmd/rootfs_template/usr/bin/
+   Alternatively, copy the binary onto an existing disk image with your usual
+   tooling (loopback mount, `mfs`, etc.).
+5. Rebuild or refresh the ELKS disk image and boot it. Start the daemon with:
+      ngircd -f /etc/ngircd.conf

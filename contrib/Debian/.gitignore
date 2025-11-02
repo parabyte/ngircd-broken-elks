@@ -1,0 +1,7 @@
+*.log
+*.debhelper
+*.substvars
+debhelper-build-stamp
+files
+ngircd/
+ngircd.service
