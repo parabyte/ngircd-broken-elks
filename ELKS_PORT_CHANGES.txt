@@ -124,9 +124,6 @@ ELKS Image Integration
    it in the rootfs template before rebuilding disk images:
       cp build-elks/bin/ngircd.os2 \
          $TOPDIR/elkscmd/rootfs_template/usr/bin/ngircd.os2
-   (If you converted the binary in step 4, copy `ngircd` instead of the OS/2
-   image. Any other deployment method such as loop-mounting an existing disk
-   image works as well.)
 6. Provide a basic configuration under `/etc/ngircd.conf` if it does not yet
    exist. The default ngIRCd examples from upstream work unchanged on ELKS.
 7. Rebuild or refresh the ELKS disk image and boot it. Start the daemon with:
