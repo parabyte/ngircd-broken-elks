@@ -110,6 +110,8 @@ file(s) and explains the rationale for the change.
 26. src/ngircd/defines.h
     - Reduced MAX_WHOWAS from 64 to 8 to fit within ELKS 64KB data segment
       limit (WHOWAS array was consuming ~19KB).
+    - Reduced WRITEBUFFER_MAX_LEN from 32768 to 8192 and WRITEBUFFER_SLINK_LEN
+      from 65536 to 16384 for ELKS to avoid truncation on 16-bit size_t.
 
 27. build-elks-ngircd.sh
     - Increased stack size from 0x0800 (2KB) to 0x1000 (4KB) to accommodate

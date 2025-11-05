@@ -13,6 +13,10 @@
 #include <errno.h>
 #include <string.h>
 
+#ifdef __WATCOMC__
+#include "watcom/syselks.h"
+#endif
+
 struct addrinfo;
 struct sockaddr;
 
@@ -147,8 +151,24 @@ setpgrp(int pid, int pgid)
 int
 pipe(int fds[2])
 {
+#ifdef __WATCOMC__
+	syscall_res res;
+	sys_setseg(fds);
+	res = sys_call1(SYS_pipe, (unsigned)fds);
+	__syscall_return(int, res);
+#else
 	(void)fds;
 	errno = ENOSYS;
+	return -1;
+#endif
+}
+
+int
+setgroups(int size, const void *list)
+{
+	(void)size;
+	(void)list;
+	errno = EPERM;
 	return -1;
 }
 

@@ -74,8 +74,10 @@ Signal_Block(int sig)
 	sigaddset(&set, sig);
 
 	sigprocmask(SIG_BLOCK, &set, NULL);
-#else
+#elif !defined(NGIRCD_ELKS)
 	sigblock(sig);
+#else
+	(void)sig;
 #endif
 }
 
@@ -89,9 +91,11 @@ Signal_Unblock(int sig)
 	sigaddset(&set, sig);
 
 	sigprocmask(SIG_UNBLOCK, &set, NULL);
-#else
+#elif !defined(NGIRCD_ELKS)
 	int old = sigblock(0) & ~sig;
 	sigsetmask(old);
+#else
+	(void)sig;
 #endif
 }
 

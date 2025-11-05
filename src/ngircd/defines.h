@@ -160,10 +160,18 @@
 #define WRITEBUFFER_FLUSH_LEN 4096
 
 /** Maximum size of the write buffer of a connection in bytes. */
+#ifdef NGIRCD_ELKS
+#define WRITEBUFFER_MAX_LEN 8192
+#else
 #define WRITEBUFFER_MAX_LEN 32768
+#endif
 
 /** Maximum size of the write buffer of a server link connection in bytes. */
+#ifdef NGIRCD_ELKS
+#define WRITEBUFFER_SLINK_LEN 16384
+#else
 #define WRITEBUFFER_SLINK_LEN 65536
+#endif
 
 
 /* IRC/IRC+ protocol */
