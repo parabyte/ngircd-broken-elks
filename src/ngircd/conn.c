@@ -1409,6 +1409,8 @@ New_Connection(int Sock, UNUSED bool IsSSL)
 	new_sock = accept(Sock, (struct sockaddr *)&new_addr,
 			  (socklen_t *)&new_sock_len);
 	if (new_sock < 0) {
+		if (errno == EAGAIN || errno == EWOULDBLOCK)
+			return -1;
 		Log(LOG_CRIT, "Can't accept connection on socket %d: %s!",
 		    Sock, strerror(errno));
 		return -1;
