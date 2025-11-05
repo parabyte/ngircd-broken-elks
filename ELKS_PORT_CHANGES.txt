@@ -119,4 +119,9 @@ file(s) and explains the rationale for the change.
       and config parsing buffers in conf.c.
     - Increased heap size from 0x0400 (1KB) to 0x2000 (8KB) to fix "OUT OF
       HEAP SPACE" errors during runtime dynamic allocations.
+    - Further increased stack to 0x2000 (8KB) after observing "STACK USING 670 HEAP"
+      warnings indicating stack overflow into heap space. The 2048-byte readbuf plus
+      function call overhead and local variables exceeded the 4KB stack limit.
+    - Set heap to 0x3000 (12KB) as maximum that fits in ELKS 64KB data segment limit.
+      Total data segment = stack (8KB) + heap (12KB) + static data (~44KB) = ~64KB.
 

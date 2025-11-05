@@ -144,8 +144,12 @@ build_sources "$CCOPTST" ngircd \
 
 OUTPUT_OS2="$BIN_DIR/ngircd.os2"
 
-echo "$EWLINK --stack 0x1000 --heap 0x4000 -o $OUTPUT_OS2 ${OBJ_FILES[*]}"
-"$EWLINK" --stack 0x1000 --heap 0x4000 -o "$OUTPUT_OS2" "${OBJ_FILES[@]}"
+# Increased stack to 8KB (0x2000) - was 4KB (0x1000)
+# ELKS uses large stack buffers like READBUFFER_LEN (2048 bytes) in conn.c
+# Heap set to 12KB (0x3000) to stay within 64KB data segment limit
+# ELKS data segment = stack + heap + static data, must be < 65536 bytes
+echo "$EWLINK --stack 0x2000 --heap 0x3000 -o $OUTPUT_OS2 ${OBJ_FILES[*]}"
+"$EWLINK" --stack 0x2000 --heap 0x3000 -o "$OUTPUT_OS2" "${OBJ_FILES[@]}"
 
 find "$OBJ_DIR" -name '*.obj' -delete
 find "$OBJ_DIR" -name '*.err' -delete
